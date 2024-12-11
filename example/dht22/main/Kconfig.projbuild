@@ -1,0 +1,30 @@
+menu "DHT Configuration"
+
+config DHT_GPIO
+    int "GPIO Pin for DHT Sensor"
+    range 0 39
+    default 4
+    help
+        GPIO pin connected to the DHT sensor.
+
+config DHT_TYPE
+    int "DHT Sensor Type"
+    default 1
+    choice
+        prompt "Select DHT sensor type"
+        default DHT_TYPE_DHT22
+
+        config DHT_TYPE_DHT11
+            int "DHT11"
+            depends on DHT_TYPE
+            help
+                Use DHT11 sensor.
+
+        config DHT_TYPE_DHT22
+            int "DHT22"
+            depends on DHT_TYPE
+            help
+                Use DHT22 sensor.
+    endchoice
+
+endmenu

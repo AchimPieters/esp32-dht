@@ -1,0 +1,20 @@
+name: "esp32-dht"
+version: "1.0.0"
+description: "ESP32 library for interfacing with DHT sensors."
+url: "https://github.com/AchimPieters/esp32-dht"
+maintainers:
+  - "info@studiopieters.nl"
+repository: "https://github.com/AchimPieters/esp32-dht"
+issues: "https://github.com/AchimPieters/esp32-dht/issues"
+license: "MIT"
+dependencies:
+  idf: ">=5.0"
+targets:
+  - "esp32"
+  - "esp32c2"
+  - "esp32c3"
+  - "esp32c5"
+  - "esp32c6"
+  - "esp32c61"
+  - "esp32s2"
+  - "esp32s3"
