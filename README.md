@@ -23,7 +23,7 @@ Connect the data pin of the DHT sensor to the ESP32 GPIO pin defined in `menucon
 | GND            | Ground                 |
 | Data           | Configured GPIO (e.g., 4) with a pull-up resistor |
 
-![StudioPieters Logo](https://github.com/AchimPieters/ESP32-SmartPlug/blob/main/images/MIT%7C%20SOFTWARE%20WHITE.svg)
+<img src="https://github.com/AchimPieters/ESP32-SmartPlug/blob/main/images/MIT%7C%20SOFTWARE%20WHITE.svg" alt="MIT Licence Logo" width="150">
 
 ## Include the Library in Your Code
 
