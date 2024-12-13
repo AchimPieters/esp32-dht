@@ -21,37 +21,52 @@
    for more information visit https://www.studiopieters.nl
  **/
 
- #include "dht.h"
+ #include <stdio.h>
  #include "freertos/FreeRTOS.h"
  #include "freertos/task.h"
  #include "esp_log.h"
+ #include "driver/gpio.h"
+ #include "dht.h"
 
- #define DHT_GPIO CONFIG_DHT_GPIO
- #define DHT_TYPE CONFIG_DHT_TYPE
+ static const char *TAG = "example_main";
 
- void dht_task(void *pvParameter) {
-     float temperature = 0.0f, humidity = 0.0f;
+ void app_main(void)
+ {
+     // Determine sensor type based on Kconfig
+     dht_sensor_type_t sensor_type;
+ #if CONFIG_EXAMPLE_TYPE_DHT11
+     sensor_type = DHT_TYPE_DHT11;
+ #elif CONFIG_EXAMPLE_TYPE_AM2301
+     sensor_type = DHT_TYPE_AM2301;
+ #elif CONFIG_EXAMPLE_TYPE_SI7021
+     sensor_type = DHT_TYPE_SI7021;
+ #else
+     #error "No sensor type selected in Kconfig"
+ #endif
 
-     // Initialize the DHT sensor
-     if (dht_init(DHT_GPIO, DHT_TYPE) == ESP_OK) {
-         ESP_LOGI(INFORMATION, "DHT sensor initialized successfully.");
+     gpio_num_t gpio_num = CONFIG_ESP_TEMP_SENSOR_GPIO;
+
+     // Enable internal pull-up resistor if specified in Kconfig
+     if (CONFIG_EXAMPLE_INTERNAL_PULLUP) {
+         gpio_pullup_en(gpio_num);
      } else {
-         ESP_LOGE(ERROR, "Failed to initialize DHT sensor.");
-         vTaskDelete(NULL);
-         return;
+         gpio_pullup_dis(gpio_num);
      }
 
-     while (1) {
-         // Read temperature and humidity
-         if (dht_read(&temperature, &humidity) == ESP_OK) {
-             ESP_LOGI(INFORMATION, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
-         } else {
-             ESP_LOGE(ERROR, "Failed to read data from DHT sensor.");
+     while (true)
+     {
+         float humidity = 0, temperature = 0;
+
+         esp_err_t result = dht_read_float_data(sensor_type, gpio_num, &humidity, &temperature);
+         if (result == ESP_OK)
+         {
+             ESP_LOGI(TAG, "Humidity: %.1f%% Temperature: %.1f°C", humidity, temperature);
          }
-         vTaskDelay(pdMS_TO_TICKS(2000));  // Delay for 2 seconds
-     }
- }
+         else
+         {
+             ESP_LOGE(TAG, "Failed to read sensor data: %s", esp_err_to_name(result));
+         }
 
- void app_main(void) {
-     xTaskCreate(dht_task, "DHT_Task", 2048, NULL, 5, NULL);
+         vTaskDelay(pdMS_TO_TICKS(2000)); // Delay for 2 seconds
+     }
  }

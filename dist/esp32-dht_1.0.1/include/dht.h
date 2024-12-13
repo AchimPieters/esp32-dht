@@ -21,28 +21,41 @@
    for more information visit https://www.studiopieters.nl
  **/
 
- #ifndef __DHT_H__
- #define __DHT_H__
+#ifndef DHT_H
+#define DHT_H
 
- #include <driver/gpio.h>
- #include <esp_err.h>
+#include "esp_err.h"
+#include "driver/gpio.h"
 
- #ifdef __cplusplus
- extern "C" {
- #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
- typedef enum
- {
-         DHT_TYPE_DHT11 = 0,
-         DHT_TYPE_AM2301,
-         DHT_TYPE_SI7021
- } dht_sensor_type_t;
+typedef enum {
+        DHT_TYPE_DHT11,
+        DHT_TYPE_DHT22
+} dht_type_t;
 
- esp_err_t dht_read_data(dht_sensor_type_t sensor_type, gpio_num_t pin, int16_t *humidity, int16_t *temperature);
- esp_err_t dht_read_float_data(dht_sensor_type_t sensor_type, gpio_num_t pin, float *humidity, float *temperature);
+/**
+ * @brief Initialize the DHT sensor
+ *
+ * @param gpio_num GPIO pin connected to the DHT sensor
+ * @param type Type of DHT sensor (DHT11 or DHT22)
+ * @return esp_err_t ESP_OK on success, or an appropriate error code
+ */
+esp_err_t dht_init(gpio_num_t gpio_num, dht_type_t type);
 
- #ifdef __cplusplus
- }
- #endif
+/**
+ * @brief Read temperature and humidity from the DHT sensor
+ *
+ * @param temperature Pointer to store the temperature value in Celsius
+ * @param humidity Pointer to store the humidity percentage
+ * @return esp_err_t ESP_OK on success, or an appropriate error code
+ */
+esp_err_t dht_read(float *temperature, float *humidity);
 
- #endif  // __DHT_H__
+#ifdef __cplusplus
+}
+#endif
+
+#endif // DHT_H

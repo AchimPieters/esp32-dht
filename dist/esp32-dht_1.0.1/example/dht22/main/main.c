@@ -21,28 +21,37 @@
    for more information visit https://www.studiopieters.nl
  **/
 
- #ifndef __DHT_H__
- #define __DHT_H__
+ #include "dht.h"
+ #include "freertos/FreeRTOS.h"
+ #include "freertos/task.h"
+ #include "esp_log.h"
 
- #include <driver/gpio.h>
- #include <esp_err.h>
+ #define DHT_GPIO CONFIG_DHT_GPIO
+ #define DHT_TYPE CONFIG_DHT_TYPE
 
- #ifdef __cplusplus
- extern "C" {
- #endif
+ void dht_task(void *pvParameter) {
+     float temperature = 0.0f, humidity = 0.0f;
 
- typedef enum
- {
-         DHT_TYPE_DHT11 = 0,
-         DHT_TYPE_AM2301,
-         DHT_TYPE_SI7021
- } dht_sensor_type_t;
+     // Initialize the DHT sensor
+     if (dht_init(DHT_GPIO, DHT_TYPE) == ESP_OK) {
+         ESP_LOGI(INFORMATION, "DHT sensor initialized successfully.");
+     } else {
+         ESP_LOGE(ERROR, "Failed to initialize DHT sensor.");
+         vTaskDelete(NULL);
+         return;
+     }
 
- esp_err_t dht_read_data(dht_sensor_type_t sensor_type, gpio_num_t pin, int16_t *humidity, int16_t *temperature);
- esp_err_t dht_read_float_data(dht_sensor_type_t sensor_type, gpio_num_t pin, float *humidity, float *temperature);
-
- #ifdef __cplusplus
+     while (1) {
+         // Read temperature and humidity
+         if (dht_read(&temperature, &humidity) == ESP_OK) {
+             ESP_LOGI(INFORMATION, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
+         } else {
+             ESP_LOGE(ERROR, "Failed to read data from DHT sensor.");
+         }
+         vTaskDelay(pdMS_TO_TICKS(2000));  // Delay for 2 seconds
+     }
  }
- #endif
 
- #endif  // __DHT_H__
+ void app_main(void) {
+     xTaskCreate(dht_task, "DHT_Task", 2048, NULL, 5, NULL);
+ }
