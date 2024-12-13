@@ -25,20 +25,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-#include "sdkconfig.h"
 
 #define DHT_START_SIGNAL_TIME_MS 20
 #define DHT_SIGNAL_TIMEOUT_US   1000
 
-static gpio_num_t dht_gpio = CONFIG_ESP_TEMP_SENSOR_GPIO;
-static dht_type_t dht_type =
-#if CONFIG_EXAMPLE_TYPE_DHT11
-        DHT_TYPE_DHT11;
-#elif CONFIG_EXAMPLE_TYPE_AM2301
-        DHT_TYPE_DHT22;
-#else
-        DHT_TYPE_DHT22; // Default fallback
-#endif
+static gpio_num_t dht_gpio;
+static dht_type_t dht_type;
 
 static esp_err_t dht_wait_for_level(int level, uint32_t timeout_us) {
         uint32_t elapsed_time = 0;
@@ -51,12 +43,14 @@ static esp_err_t dht_wait_for_level(int level, uint32_t timeout_us) {
         return ESP_OK;
 }
 
-esp_err_t dht_init() {
+esp_err_t dht_init(gpio_num_t gpio_num, dht_type_t type) {
+        dht_gpio = gpio_num;
+        dht_type = type;
+
         gpio_set_direction(dht_gpio, GPIO_MODE_INPUT_OUTPUT);
         gpio_set_level(dht_gpio, 1);
 
-        ESP_LOGI("DHT", "DHT sensor initialized on GPIO %d, Type: %s", dht_gpio,
-                 dht_type == DHT_TYPE_DHT11 ? "DHT11" : "DHT22");
+        ESP_LOGI(INFORMATION, "DHT sensor initialized on GPIO %d", dht_gpio);
         return ESP_OK;
 }
 
@@ -78,20 +72,20 @@ esp_err_t dht_read(float *temperature, float *humidity) {
         // Wait for sensor response
         if (dht_wait_for_level(0, DHT_SIGNAL_TIMEOUT_US) != ESP_OK ||
             dht_wait_for_level(1, DHT_SIGNAL_TIMEOUT_US) != ESP_OK) {
-                ESP_LOGE("DHT", "Sensor response timed out");
+                ESP_LOGE(ERROR, "Sensor response timed out");
                 return ESP_ERR_TIMEOUT;
         }
 
         // Read 40 bits (5 bytes)
         for (int i = 0; i < 40; ++i) {
                 if (dht_wait_for_level(0, DHT_SIGNAL_TIMEOUT_US) != ESP_OK) {
-                        ESP_LOGE("DHT", "Timeout waiting for bit %d", i);
+                        ESP_LOGE(ERROR, "Timeout waiting for bit %d", i);
                         return ESP_ERR_TIMEOUT;
                 }
                 uint32_t pulse_time = 0;
                 while (gpio_get_level(dht_gpio)) {
                         if (pulse_time++ > DHT_SIGNAL_TIMEOUT_US) {
-                                ESP_LOGE("DHT", "Timeout measuring bit %d", i);
+                                ESP_LOGE(ERROR, "Timeout measuring bit %d", i);
                                 return ESP_ERR_TIMEOUT;
                         }
                         ets_delay_us(1);
@@ -104,7 +98,7 @@ esp_err_t dht_read(float *temperature, float *humidity) {
 
         // Verify checksum
         if ((data[0] + data[1] + data[2] + data[3]) != data[4]) {
-                ESP_LOGE("DHT", "Checksum failed");
+                ESP_LOGE(ERROR, "Checksum failed");
                 return ESP_ERR_INVALID_CRC;
         }
 
@@ -116,6 +110,6 @@ esp_err_t dht_read(float *temperature, float *humidity) {
                 *temperature = ((data[2] << 8) | data[3]) * 0.1;
         }
 
-        ESP_LOGI("DHT", "Temperature: %.1f°C, Humidity: %.1f%%", *temperature, *humidity);
+        ESP_LOGI(INFORMATION, "Temperature: %.1f°C, Humidity: %.1f%%", *temperature, *humidity);
         return ESP_OK;
 }

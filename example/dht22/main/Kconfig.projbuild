@@ -1,30 +1,24 @@
 menu "DHT Configuration"
 
-config DHT_GPIO
-    int "GPIO Pin for DHT Sensor"
-    range 0 39
-    default 4
+choice "Select DHT Sensor Type"
+    prompt "Select the type of DHT sensor used in your project"
+    default EXAMPLE_TYPE_AM2301
+
+    config EXAMPLE_TYPE_DHT11
+        bool "DHT11"
+
+    config EXAMPLE_TYPE_AM2301
+        bool "DHT21/DHT22/AM2301/AM2302/AM2321"
+
+    config EXAMPLE_TYPE_SI7021
+        bool "Itead Si7021"
+endchoice
+
+config ESP_TEMP_SENSOR_GPIO
+    int "GPIO Number for DHT Data Pin"
+    default 4 if IDF_TARGET_ESP8266 || IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32C2 || IDF_TARGET_ESP32C6
+    default 17 if IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
     help
-        GPIO pin connected to the DHT sensor.
-
-config DHT_TYPE
-    int "DHT Sensor Type"
-    default 1
-    choice
-        prompt "Select DHT sensor type"
-        default DHT_TYPE_DHT22
-
-        config DHT_TYPE_DHT11
-            int "DHT11"
-            depends on DHT_TYPE
-            help
-                Use DHT11 sensor.
-
-        config DHT_TYPE_DHT22
-            int "DHT22"
-            depends on DHT_TYPE
-            help
-                Use DHT22 sensor.
-    endchoice
+        Specify the GPIO number to which the DHT sensor data pin is connected.
 
 endmenu

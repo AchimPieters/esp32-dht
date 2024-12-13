@@ -1,2 +1,2 @@
 dependencies:
-  achimpieters/esp32-dht: "^1.0.0"
+  achimpieters/esp32-dht: "^1.0.1"
