@@ -43,10 +43,9 @@ static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
  #define CHECK_ARG(VAL) do { if (!(VAL)) return ESP_ERR_INVALID_ARG; } while (0)
 
- #define CHECK_LOGE(x, msg, ...) do { \
+#define CHECK_LOGE(x, msg, ...) do { \
                 esp_err_t __err = (x); \
                 if (__err != ESP_OK) { \
-                        PORT_EXIT_CRITICAL(); \
                         ESP_LOGE(TAG, msg, ## __VA_ARGS__); \
                         return __err; \
                 } \
